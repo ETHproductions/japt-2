@@ -135,7 +135,7 @@ $(document).delegate('#code', 'keydown', function(e) {
   }
 });
 
-let numArguments = 1;
+let numArguments = 0;
 
 function removeArgument(index) {
   $("#argument-" + index).remove();
