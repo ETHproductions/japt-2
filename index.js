@@ -1,7 +1,12 @@
 for (let textarea of $("textarea")) {
   textarea.oninput = textarea.adjustHeight = function() {
-    textarea.style.height = Math.min(textarea.scrollHeight - 4, 120) + "px";
+    let lineHeight = parseInt($(textarea).css("lineHeight"));
+    let lines = textarea.value.split("\n").length;
+    lines = Math.max(lines, $(textarea).hasClass("argument") ? 1 : 2)
+    let height = Math.min(lineHeight * lines + 6, 120);
+    textarea.style.height = height + "px";
   };
+  textarea.adjustHeight();
 }
 
 function setText(element, text) {
@@ -130,11 +135,48 @@ $(document).delegate('#code', 'keydown', function(e) {
   }
 });
 
-function runJapt(code_Japt) {
-  let code_JS = Japt.transpile(code_Japt);
+let numArguments = 1;
 
+function removeArgument(index) {
+  $("#argument-" + index).remove();
+  for (let i = index + 1; i <= numArguments; i++) {
+    let elem = $("#argument-" + i);
+    $(elem.children()[0]).attr("placeholder", "Argument " + (i - 1) + " goes here...");
+    elem.attr("id", "argument-" + (i - 1));
+  }
+  
+  numArguments -= 1;
+  if (numArguments === 0)
+    $("#argument-0").removeClass("hidden");
+}
+
+function addArgument(index) {
+  for (let i = numArguments; i > index; i--) {
+    let elem = $("#argument-" + i);
+    $(elem.children()[0]).attr("placeholder", "Argument " + (i + 1) + " goes here...");
+    elem.attr("id", "argument-" + (i + 1));
+  }
+  
+  let newArg = $("#argument-template").clone();
+  newArg.attr("id", "argument-" + (index + 1));
+  $(newArg.children()[0]).attr("placeholder", "Argument " + (index + 1) + " goes here...");
+  newArg.removeClass("hidden");
+  newArg.insertAfter($("#argument-" + index));
+  
+  if (numArguments === 0)
+    $("#argument-0").addClass("hidden");
+  numArguments += 1;
+}
+
+addArgument(0);
+
+function runJapt(code_Japt, arguments, input) {
   $("#output").val("");
   $("#status").css("color", "black");
+  $("#status").text("Compiling...");
+  
+  let code_JS = Japt.transpile(code_Japt);
+
   $("#status").text("Running...");
 
   if (window.Worker) {
@@ -154,14 +196,23 @@ function runJapt(code_Japt) {
 
     evaluator.postMessage({
       code: code_JS,
-      args: [],
-      input: ""
+      args: arguments,
+      input: input,
+      env: { A: 10 }
     });
   }
 
   else {
     try {
-      $("#output").val(eval(code_JS));
+      eval(code_JS);
+    }
+    catch (e) {
+      $("#status").css("color", "red");
+      $("#status").text(e.toString());
+    }
+    
+    try {
+      $("#output").val(program(input, ...arguments));
       $("#status").text("Finished.");
     }
     catch (e) {
@@ -169,4 +220,23 @@ function runJapt(code_Japt) {
       $("#status").text(e.toString());
     }
   }
+}
+
+function run() {
+  let code = $("#code").val();
+  let input = $("#input").val();
+  
+  let arguments = [];
+  for (let elem of $("textarea.argument")) {
+    if ($(elem).attr("placeholder") === "") continue;
+    console.log(elem);
+    let text = elem.value;
+    try {
+      text = eval(text);
+    }
+    catch (e) {}
+    arguments.push(text);
+  }
+  
+  runJapt(code, arguments, input);
 }

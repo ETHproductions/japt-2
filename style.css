@@ -7,6 +7,7 @@ textarea {
   width: 80%;
 }
 
-#error {
-  color: red;
+.argument-button {
+  transform: translate(0px, -4px);
+  text-align: center;
 }

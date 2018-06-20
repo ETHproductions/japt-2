@@ -37,7 +37,7 @@ else {
 }
 
 let code_JS = Japt.transpile(code);
-process.stdout.write(eval(code_JS));
+process.stdout.write(eval(code_JS)(""));
 })();
 
 module.exports = Japt;

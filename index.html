@@ -1,21 +1,36 @@
 <!doctype html>
 <html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
-    <title>Japt interpreter</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Japt 2 interface</title>
+
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" type="text/css" href="./style.css">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700' rel='stylesheet' type='text/css'>
   </head>
   <body>
-    <h2>Japt interpreter</h2>
+    <div class="container">
+    <h2>Japt 2 interface</h2>
     <textarea id="code" placeholder="Code goes here..."></textarea>
+    <div id="argument-template" class="hidden">
+      <textarea class="argument" placeholder=""></textarea>
+      <button class="argument-button" onclick="removeArgument(+$(this).parent().attr('id').slice(9))">−</button>
+      <button class="argument-button" onclick="addArgument(+$(this).parent().attr('id').slice(9))">+</button>
+    </div>
+    <div id="argument-0" class="hidden">
+      <button class="argument-button" onclick="addArgument(0)">Add an argument</button>
+    </div>
     <textarea id="input" placeholder="Input goes here..."></textarea>
     <textarea id="output" placeholder="Output will appear here"></textarea>
     <br>
-    <button onclick="runJapt($('#code').val())">Run</button> <span id="status">Ready.</span>
+    <button onclick="run()">Run</button> <span id="status">Ready.</span>
+    </div>
     
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     <script src="index.js"></script>
     <script src="src/japt.js"></script>
   </body>
