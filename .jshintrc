@@ -1,0 +1,13 @@
+{ 
+  "esversion": 6,
+  "evil": true,
+  "loopfunc": true,
+  "laxbreak": true,
+  "jquery": true,
+  "browser": true,
+  "node": true,
+  "globals": {
+    "Japt": true,
+    "program": true
+  }
+}

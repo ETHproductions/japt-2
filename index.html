@@ -13,20 +13,20 @@
   </head>
   <body>
     <div class="container">
-    <h2>Japt 2 interface</h2>
-    <textarea id="code" placeholder="Code goes here..."></textarea>
-    <div id="argument-template" class="hidden">
-      <textarea class="argument" placeholder=""></textarea>
-      <button class="argument-button" onclick="removeArgument(+$(this).parent().attr('id').slice(9))">−</button>
-      <button class="argument-button" onclick="addArgument(+$(this).parent().attr('id').slice(9))">+</button>
-    </div>
-    <div id="argument-0">
-      <button class="argument-button" onclick="addArgument(0)">Add an argument</button>
-    </div>
-    <textarea id="input" placeholder="Input goes here..."></textarea>
-    <textarea id="output" placeholder="Output will appear here"></textarea>
-    <br>
-    <button onclick="run()">Run</button> <span id="status">Ready.</span>
+      <h2>Japt 2 interface</h2>
+      <textarea id="code" placeholder="Code goes here..."></textarea>
+      <div id="argument-template" class="hidden">
+        <textarea class="argument" placeholder=""></textarea>
+        <button class="argument-button" onclick="removeArgument(+$(this).parent().attr('id').slice(9))">−</button>
+        <button class="argument-button" onclick="addArgument(+$(this).parent().attr('id').slice(9))">+</button>
+      </div>
+      <div id="argument-0">
+        <button class="argument-button" onclick="addArgument(0)">Add an argument</button>
+      </div>
+      <textarea id="input" placeholder="Input goes here..."></textarea>
+      <textarea id="output" placeholder="Output will appear here"></textarea>
+      <br>
+      <button onclick="run()">Run</button> <span id="status">Ready.</span>
     </div>
     
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>

@@ -1,3 +1,5 @@
+/* globals postMessage, onmessage: true */
+
 onmessage = function({data}) {
   console.log(data);
   
@@ -21,4 +23,4 @@ onmessage = function({data}) {
     status,
     error
   });
-}
+};
