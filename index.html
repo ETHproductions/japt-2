@@ -12,8 +12,11 @@
     <textarea id="code" placeholder="Code goes here..."></textarea>
     <textarea id="input" placeholder="Input goes here..."></textarea>
     <textarea id="output" placeholder="Output will appear here"></textarea>
+    <br>
+    <button onclick="runJapt($('#code').val())">Run</button> <span id="status">Ready.</span>
     
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script src="index.js"></script>
+    <script src="src/japt.js"></script>
   </body>
 </html>

@@ -6,3 +6,7 @@ textarea {
   font-family: 'Inconsolata', Consolas, monospace;
   width: 80%;
 }
+
+#error {
+  color: red;
+}

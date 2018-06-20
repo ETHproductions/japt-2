@@ -101,10 +101,10 @@ function tab(string, start = 0, end = string.length, shiftKey = false) {
   let section = string.slice(start, end);
   if (shiftKey === true) {
     for (var i = 0; i < 5; i++)
-      section = section.replace(/[^\n -~]/g, function(x){ return tab(x); });
+      section = section.replace(/[^\n -~]/g, x => tab(x));
   }
   else {
-    section = section.replace(/[^]/g, function(x){ return alts[x] || x; })
+    section = section.replace(/[^]/g, x => alts[x] || x)
   }
   return string.slice(0, start) + section + string.slice(end);
 }
@@ -129,3 +129,44 @@ $(document).delegate('#code', 'keydown', function(e) {
     this.selectionEnd = end;
   }
 });
+
+function runJapt(code_Japt) {
+  let code_JS = Japt.transpile(code_Japt);
+
+  $("#output").val("");
+  $("#status").css("color", "black");
+  $("#status").text("Running...");
+
+  if (window.Worker) {
+    let evaluator = new Worker('src/worker.js');
+    evaluator.onmessage = function ({data}) {
+      console.log(data);
+
+      if (data.status === "finished") {
+        $("#output").val(data.result);
+        $("#status").text("Finished.");
+      }
+      else if (data.status === "error") {
+        $("#status").css("color", "red");
+        $("#status").text(data.error);
+      }
+    }
+
+    evaluator.postMessage({
+      code: code_JS,
+      args: [],
+      input: ""
+    });
+  }
+
+  else {
+    try {
+      $("#output").val(eval(code_JS));
+      $("#status").text("Finished.");
+    }
+    catch (e) {
+      $("#status").css("color", "red");
+      $("#status").text(e.toString());
+    }
+  }
+}
