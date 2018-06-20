@@ -8,9 +8,9 @@ onmessage = function({data}) {
   for (let key in env)
     eval("var " + key + " = " + env[key]);
   
-  let result, status, error;
+  let result, status, error, program;
   try {
-    eval(code);
+    program = eval(code);
     result = program(input, ...args);
     status = "finished";
   }

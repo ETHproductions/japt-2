@@ -90,15 +90,16 @@ function runJapt(code_Japt, args, input) {
 
     evaluator.postMessage({
       code: code_JS,
-      args: arguments,
+      args: args,
       input: input,
       env: { A: 10 }
     });
   }
 
   else {
+    let program;
     try {
-      eval(code_JS);
+      program = eval(code_JS);
     }
     catch (e) {
       $("#status").css("color", "red");
@@ -106,7 +107,7 @@ function runJapt(code_Japt, args, input) {
     }
     
     try {
-      $("#output").val(program(input, ...arguments));
+      $("#output").val(program(input, ...args));
       $("#status").text("Finished.");
     }
     catch (e) {
