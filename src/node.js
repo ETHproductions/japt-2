@@ -5,39 +5,55 @@ let Japt = require('./japt');
 let fs = require("fs");
 
 (function(){
-'use strict';
+  let programArgs = process.argv.slice(2),
+      debug = false,
+      encoding = 'binary',
+      codeFile, inputFile,
+      code, args = [];
 
-let args = process.argv.slice(2),
-	debug = false,
-    encoding = 'japt',
-    codeFile, inputFile;
+  function readFile(name, encoding = "utf8") {
+    let content;
 
-let code = args.shift();
+    try {
+      content = fs.readFileSync(name, {encoding});
+    } catch (e) {
+      console.log('Error: Could not find file at ' + name);
+      return null;
+    }
 
-function readFile(name) {
-  let content;
-
-  try {
-    content = fs.readFileSync(name);
-  } catch (e) {
-    console.log('Error: Could not find file at ' + name);
-    return null;
+    return content.toString().replace(/\r\n/g, "\n");
   }
 
-  return content.toString().replace(/\r\n/g, "\n");
-}
+  for (let item of programArgs) {
+    if (/^-\D+$/.test(item)) {
+      if (/u/.test(item))
+        encoding = 'utf8';
+    }
+    else if (!codeFile) {
+      codeFile = item;
+    }
+    else {
+      try {
+        item = eval(item);
+      }
+      catch (e) {}
+      args.push(item);
+    }
+  }
 
-if (code) {
-  code = readFile(code);
-  if (code === null) return;
-}
-else {
-  console.log("Please provide a program file.");
-  return;
-}
+  if (codeFile) {
+    code = readFile(codeFile, encoding);
+    if (code === null) return;
+  }
+  else {
+    console.log("Please provide a program file.");
+    return;
+  }
 
-let code_JS = Japt.transpile(code);
-process.stdout.write(eval(code_JS)(""));
+  let code_JS = Japt.transpile(code, true);
+  let program = eval(code_JS);
+  let result = program("", ...args);
+  process.stdout.write(result + "");
 })();
 
 module.exports = Japt;
