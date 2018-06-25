@@ -84,38 +84,41 @@ let Japt = {
         let char = code[0]; code = code.slice(1);
         
         if ("([".includes(char)) {
+          // Append to the level and start a new one.
           levelAppend(char);
           levelStart();
         }
         else if (Japt.methodNames.includes(char)) {
-          levelAppend("." + char);
-          useJapt("(");
+          // Turn it into a method call and start a new level.
+          levelAppend("." + char + "(");
+          levelStart();
         }
         else if (char === " ") {
+          // Append a paren, and end the level if possible, prepend another paren if not.
           levelAppend(")");
-          if (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "(") {
+          if (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "(")
             levelEnd();
-          }
-          else {
+          else
             levelPrepend("(");
-          }
         }
         else if (char === ")") {
+          // Pretend we ran across two spaces.
           useJapt("  ");
         }
         else if (char === "]") {
-          while (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "(") {
+          // Close as many parens as possible.
+          while (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "(")
             levelEnd(")");
-          }
+          
+          // Append a bracket, and end the level if possible, prepend another bracket if not.
           levelAppend("]");
-          if (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "[") {
+          if (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "[")
             levelEnd();
-          }
-          else {
+          else 
             levelPrepend("[");
-          }
         }
         else {
+          // Fallback: append directly to the level.
           levelAppend(char);
         }
       }
