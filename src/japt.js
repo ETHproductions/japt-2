@@ -16,10 +16,32 @@ function mirror(text, reverse = true) {
   return output;
 }
 
+function defProps(target, properties) {
+	for (var key in properties) properties[key] = { value: properties[key], writable: true };
+	Object.defineProperties(target, properties);
+}
+
+defProps(Array.prototype, {
+  get: function (index) {
+    if (index < 0) index += this.length;
+    return this[index];
+  },
+  set: function (index, item) {
+    if (index < 0) index += this.length;
+    return this[index] = item;
+  },
+  mapAt: function (index, f) {
+    if (index < 0) index += this.length;
+    return this[index] = f(this[index]);
+  }
+});
+
 let Japt = {
   
   codepage: "₀₁₂₃₄₅₆₇₈₉₊₋₍₎¼¾⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾½⅟ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~¶"
           + "ẠḄḌẸḤỊḲḶṂṆỌṚṢṬỤṾẈỴẒȦḂĊḊĖḞĠḢİĿṀṄȮṖṘṠṪẆẊẎŻạḅḍẹḥịḳḷṃṇọṛṣṭụṿẉỵẓȧḃċḋėḟġḣıŀṁṅȯṗṙṡṫẇẋẏżàáâæèéêìíîòóôùúû≈≠≡≢≤≥∧∨................‹›«»“‟”„",
+  
+  methodNames: "abcdefghijklmnopqrstuvwxyzạḅḍẹḥịḳḷṃṇọṛṣṭụṿẉỵẓȧḃċḋėḟġḣıŀṁṅȯṗṙṡṫẇẋẏżàáâæèéêìíîòóôùúû",
   
   transpile: function(code_Japt, isBinary = false) {
     if (isBinary) {
@@ -31,47 +53,66 @@ let Japt = {
       .replace(/\t/g, 'ṭ');
     
     function subtranspile(code) {
-      let outp, currObjects = [""], coIndex = 0;
-      for ( ; code.length > 0; ) {
+      let outp, currObjects = [""];
+      function objectStart() {
+        currObjects.push("");
+      }
+      function objectAppend(str) {
+        currObjects.mapAt(-1, obj => obj + str);
+      }
+      function objectPrepend(str) {
+        currObjects.mapAt(-1, obj => str + obj);
+      }
+      function objectEnd(str = "") {
+        str = currObjects.pop() + str;
+        objectAppend(str);
+      }
+      function useJapt(str) {
+        code = str + code;
+      }
+      
+      while ( code.length > 0 ) {
         let char = code[0]; code = code.slice(1);
         
         if ("([".includes(char)) {
-          currObjects[coIndex] += char;
-          currObjects.push("");
-          coIndex++;
+          objectAppend(char);
+          objectStart();
+        }
+        else if (Japt.methodNames.includes(char)) {
+          objectAppend("." + char);
+          useJapt("(");
         }
         else if (char === " ") {
-          currObjects[coIndex] += ")";
-          if (currObjects.length > 1 && currObjects[coIndex - 1].slice(-1) === "(") {
-            coIndex--;
-            currObjects[coIndex] += currObjects.pop();
+          objectAppend(")");
+          if (currObjects.length > 1 && currObjects.get(-2).slice(-1) === "(") {
+            objectEnd();
           }
           else {
-            currObjects[coIndex] = "(" + currObjects[coIndex];
+            objectPrepend("(");
           }
         }
+        else if (char === ")") {
+          useJapt("  ");
+        }
         else if (char === "]") {
-          while (currObjects.length > 1 && currObjects[coIndex - 1].slice(-1) === "(") {
-            coIndex--;
-            currObjects[coIndex] += currObjects.pop() + ")";
+          while (currObjects.length > 1 && currObjects.get(-2).slice(-1) === "(") {
+            objectEnd(")");
           }
-          currObjects[coIndex] += "]";
-          if (currObjects.length > 1 && currObjects[coIndex - 1].slice(-1) === "[") {
-            coIndex--;
-            currObjects[coIndex] += currObjects.pop();
+          objectAppend("]");
+          if (currObjects.length > 1 && currObjects.get(-2).slice(-1) === "[") {
+            objectEnd();
           }
           else {
-            currObjects[coIndex] = "[" + currObjects[coIndex];
+            objectPrepend("[");
           }
         }
         else {
-          currObjects[coIndex] += char;
+          objectAppend(char);
         }
       }
       
-      while (coIndex > 0) {
-        coIndex--;
-        currObjects[coIndex] += currObjects.pop() + mirror(currObjects[coIndex].slice(-1));
+      while (currObjects.length > 1) {
+        objectEnd(mirror(currObjects.get(-2).slice(-1)));
       }
       
       return currObjects[0];

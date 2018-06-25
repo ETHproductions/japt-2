@@ -1,6 +1,7 @@
 { 
   "esversion": 6,
   "evil": true,
+  "boss": true,
   "loopfunc": true,
   "laxbreak": true,
   "jquery": true,
