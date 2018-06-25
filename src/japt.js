@@ -44,29 +44,38 @@ let Japt = {
   methodNames: "abcdefghijklmnopqrstuvwxyzạḅḍẹḥịḳḷṃṇọṛṣṭụṿẉỵẓȧḃċḋėḟġḣıŀṁṅȯṗṙṡṫẇẋẏżàáâæèéêìíîòóôùúû",
   
   transpile: function(code_Japt, isBinary = false) {
+    // Converts from the Japt codepage to UTF-8 for easier processing.
     if (isBinary) {
       code_Japt = code_Japt.replace(/[^]/g, x => Japt.codepage[x.charCodeAt()]);
     }
     
+    // Replaces literal newlines and tabs for easier processing.
     code_Japt = code_Japt
       .replace(/\n/g, '¶')
       .replace(/\t/g, 'ṭ');
     
+    // Handles the actual transpilation of the code.
     function subtranspile(code) {
-      let outp, currObjects = [""];
-      function objectStart() {
-        currObjects.push("");
+      let outp, currLevels = [""];
+      
+      // Starts a new level.
+      function levelStart() {
+        currLevels.push("");
       }
-      function objectAppend(str) {
-        currObjects.mapAt(-1, obj => obj + str);
+      // Appends JS code to the current level.
+      function levelAppend(str) {
+        currLevels.mapAt(-1, obj => obj + str);
       }
-      function objectPrepend(str) {
-        currObjects.mapAt(-1, obj => str + obj);
+      // Prepends JS code to the current level.
+      function levelPrepend(str) {
+        currLevels.mapAt(-1, obj => str + obj);
       }
-      function objectEnd(str = "") {
-        str = currObjects.pop() + str;
-        objectAppend(str);
+      // Ends the current level, appending it to the previous one.
+      function levelEnd(str = "") {
+        str = currLevels.pop() + str;
+        levelAppend(str);
       }
+      // Makes the transpiler behave as if the given code were next in the source.
       function useJapt(str) {
         code = str + code;
       }
@@ -75,51 +84,52 @@ let Japt = {
         let char = code[0]; code = code.slice(1);
         
         if ("([".includes(char)) {
-          objectAppend(char);
-          objectStart();
+          levelAppend(char);
+          levelStart();
         }
         else if (Japt.methodNames.includes(char)) {
-          objectAppend("." + char);
+          levelAppend("." + char);
           useJapt("(");
         }
         else if (char === " ") {
-          objectAppend(")");
-          if (currObjects.length > 1 && currObjects.get(-2).slice(-1) === "(") {
-            objectEnd();
+          levelAppend(")");
+          if (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "(") {
+            levelEnd();
           }
           else {
-            objectPrepend("(");
+            levelPrepend("(");
           }
         }
         else if (char === ")") {
           useJapt("  ");
         }
         else if (char === "]") {
-          while (currObjects.length > 1 && currObjects.get(-2).slice(-1) === "(") {
-            objectEnd(")");
+          while (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "(") {
+            levelEnd(")");
           }
-          objectAppend("]");
-          if (currObjects.length > 1 && currObjects.get(-2).slice(-1) === "[") {
-            objectEnd();
+          levelAppend("]");
+          if (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "[") {
+            levelEnd();
           }
           else {
-            objectPrepend("[");
+            levelPrepend("[");
           }
         }
         else {
-          objectAppend(char);
+          levelAppend(char);
         }
       }
       
-      while (currObjects.length > 1) {
-        objectEnd(mirror(currObjects.get(-2).slice(-1)));
+      while (currLevels.length > 1) {
+        levelEnd(mirror(currLevels.get(-2).slice(-1)));
       }
       
-      return currObjects[0];
+      return currLevels[0];
     }
     
     let outp = subtranspile(code_Japt);
     
+    // Adds a return keyword to the last statement.
     let returnIndex = outp.lastIndexOf(';') + 1;
     let code_JS = outp.slice(0, returnIndex) + 'return ' + outp.slice(returnIndex);
     
