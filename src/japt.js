@@ -60,52 +60,36 @@ let Japt = {
     function subtranspile(code) {
       let currLevels = [[]];
       
-      let useDebug = false;
-      function debug(message) {
-        if (useDebug)
-          console.log(message, JSON.stringify(currLevels));
-      }
-      
       // Starts a new level.
       function levelStart() {
-        debug("Starting level...");
         currLevels.push([]);
       }
       // Appends JS code to the current object.
       function objectAppend(str) {
-        debug("Appending to object...");
         if (currLevels.length === 0)
           currLevels.push([]);
         if (currLevels.get(-1).length === 0) 
           currLevels.get(-1).push("");
         currLevels.mapAt(-1, arr => arr.mapAt(-1, obj => obj + str));
-        debug("Appended to object.");
       }
       // Prepends JS code to the current object.
       function objectPrepend(str) {
-        debug("Prepending to object...");
         if (currLevels.length === 0)
           currLevels.push([]);
         if (currLevels.get(-1).length === 0) 
           currLevels.get(-1).push("");
         currLevels.mapAt(-1, arr => arr.mapAt(-1, obj => str + obj));
-        debug("Prepended to object.");
       }
       // Appends an object to the current level.
       function levelAppend(obj) {
-        debug("Appending to level...");
         currLevels.get(-1).push(obj);
-        debug("Appended to level.");
       }
       // Prepends an object to the current level.
       function levelPrepend(obj) {
-        debug("Prepending to level...");
         currLevels.get(-1).shift(obj);
-        debug("Prepended to level.");
       }
       // Ends the current level, appending it to the last object in the previous one.
       function levelEnd(endchar) {
-        debug("Ending level " + endchar + "...");
         let obj = currLevels.pop().join(", ") + endchar;
         if (currLevels.length === 0 || currLevels.get(-1).get(-1).slice(-1) !== mirror(endchar))
           obj = mirror(endchar) + obj;
@@ -113,7 +97,6 @@ let Japt = {
       }
       // Ends as many levels as possible with the given closing brackets.
       function levelEndAll(endchars) {
-        debug("Ending all levels " + endchars + "...");
         while (true) {
           if (currLevels.length < 2)
             return;
