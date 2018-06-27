@@ -32,7 +32,8 @@ defProps(Array.prototype, {
   },
   mapAt: function (index, f) {
     if (index < 0) index += this.length;
-    return this[index] = f(this[index]);
+    this[index] = f(this[index]);
+    return this;
   }
 });
 
@@ -42,6 +43,7 @@ let Japt = {
           + "ẠḄḌẸḤỊḲḶṂṆỌṚṢṬỤṾẈỴẒȦḂĊḊĖḞĠḢİĿṀṄȮṖṘṠṪẆẊẎŻạḅḍẹḥịḳḷṃṇọṛṣṭụṿẉỵẓȧḃċḋėḟġḣıŀṁṅȯṗṙṡṫẇẋẏżàáâæèéêìíîòóôùúû≈≠≡≢≤≥∧∨................‹›«»“‟”„",
   
   methodNames: "abcdefghijklmnopqrstuvwxyzạḅḍẹḥịḳḷṃṇọṛṣṭụṿẉỵẓȧḃċḋėḟġḣıŀṁṅȯṗṙṡṫẇẋẏżàáâæèéêìíîòóôùúû",
+  variableNames: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
   
   transpile: function(code_Japt, isBinary = false) {
     // Converts from the Japt codepage to UTF-8 for easier processing.
@@ -56,24 +58,62 @@ let Japt = {
     
     // Handles the actual transpilation of the code.
     function subtranspile(code) {
-      let outp, currLevels = [""];
+      let currLevels = [[]];
       
       // Starts a new level.
       function levelStart() {
-        currLevels.push("");
+        currLevels.push([]);
       }
-      // Appends JS code to the current level.
+      // Appends JS code to the current object.
+      function objectAppend(str) {
+        if (currLevels.length === 0)
+          currLevels.push([]);
+        if (currLevels.get(-1).length === 0) 
+          currLevels.get(-1).push("");
+        currLevels.mapAt(-1, arr => arr.mapAt(-1, obj => obj + str));
+      }
+      // Prepends JS code to the current object.
+      function objectPrepend(str) {
+        debug("Prepending to object...");
+        if (currLevels.length === 0)
+          currLevels.push([]);
+          currLevels.get(-1).push("");
+        currLevels.mapAt(-1, arr => arr.mapAt(-1, obj => str + obj));
+        debug("Prepended to object.");
+      }
       function levelAppend(str) {
-        currLevels.mapAt(-1, obj => obj + str);
+      // Appends an object to the current level.
+      function levelAppend(obj) {
+        debug("Appending to level...");
+        currLevels.get(-1).push(obj);
+        debug("Appended to level.");
       }
-      // Prepends JS code to the current level.
       function levelPrepend(str) {
-        currLevels.mapAt(-1, obj => str + obj);
+      // Prepends an object to the current level.
+      function levelPrepend(obj) {
+        debug("Prepending to level...");
+        currLevels.get(-1).shift(obj);
+        debug("Prepended to level.");
       }
       // Ends the current level, appending it to the previous one.
-      function levelEnd(str = "") {
         str = currLevels.pop() + str;
-        levelAppend(str);
+      // Ends the current level, appending it to the last object in the previous one.
+      function levelEnd(endchar) {
+        let obj = currLevels.pop().join(", ") + endchar;
+        if (currLevels.length === 0 || currLevels.get(-1).get(-1).slice(-1) !== mirror(endchar))
+          obj = mirror(endchar) + obj;
+        objectAppend(obj);
+      }
+      // Ends as many levels as possible with the given closing brackets.
+      function levelEndAll(endchars) {
+        while (true) {
+          if (currLevels.length < 2)
+            return;
+          let lastchar = mirror(currLevels.get(-2).get(-1).slice(-1));
+          if (!endchars.includes(lastchar))
+            return;
+          levelEnd(lastchar);
+        }
       }
       // Makes the transpiler behave as if the given code were next in the source.
       function useJapt(str) {
@@ -89,17 +129,17 @@ let Japt = {
           levelStart();
         }
         else if (Japt.methodNames.includes(char)) {
-          // Turn it into a method call and start a new level.
-          levelAppend("." + char + "(");
+          // If the last char was a digit, append a space (to avoid 5.toString() syntax errors).
+          if (/\d/.test(currLevels.get(-1).get(-1).slice(-1)))
+            objectAppend(" ");
+          
+          // Turn the letter into a method call and start a new level.
+          objectAppend("." + char + "(");
           levelStart();
         }
         else if (char === " ") {
-          // Append a paren, and end the level if possible, prepend another paren if not.
-          levelAppend(")");
-          if (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "(")
-            levelEnd();
-          else
-            levelPrepend("(");
+          // End the level with a paren.
+          levelEnd(")");
         }
         else if (char === ")") {
           // Pretend we ran across two spaces.
@@ -107,27 +147,55 @@ let Japt = {
         }
         else if (char === "]") {
           // Close as many parens as possible.
-          while (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "(")
-            levelEnd(")");
+          levelEndAll(")");
           
-          // Append a bracket, and end the level if possible, prepend another bracket if not.
-          levelAppend("]");
-          if (currLevels.length > 1 && currLevels.get(-2).slice(-1) === "[")
-            levelEnd();
-          else 
-            levelPrepend("[");
+          // End the level with a square bracket.
+          levelEnd("]");
+        }
+        else if (Japt.variableNames.includes(char)) {
+          // Append it to the level.
+          levelAppend(char);
+        }
+        else if (/\d|\./.test(char)) {
+          let litNumber = char, isDecimal = false;
+          if (char === ".") isDecimal = true;
+          
+          // Leading zeroes become their own literals.
+          if (litNumber !== "0")
+            // While the next char is a digit, or it's "." and we're not in a decimal, add it to the literal.
+            while (/^\d/.test(code) || (code[0] === "." && !isDecimal)) {
+              char = code[0]; code = code.slice(1);
+              litNumber += char;
+              if (char === ".")
+                isDecimal = true;
+            }
+          
+          // If it's just ".", turn it into ".1".
+          if (litNumber === ".")
+            litNumber = ".1";
+          
+          // Add a leading 0 for decimals.
+          if (litNumber[0] === ".")
+            litNumber = "0" + litNumber;
+          
+          // Append to the level.
+          levelAppend(litNumber);
+        }
+        else if (char === ",") {
+          // Commas are inserted automatically; don't do anything extra.
         }
         else {
           // Fallback: append directly to the level.
-          levelAppend(char);
+          objectAppend(char);
         }
       }
       
+      // Close any levels left open.
       while (currLevels.length > 1) {
-        levelEnd(mirror(currLevels.get(-2).slice(-1)));
+        levelEnd(mirror(currLevels.get(-2).get(-1).slice(-1)));
       }
       
-      return currLevels[0];
+      return currLevels[0].join(", ");
     }
     
     let outp = subtranspile(code_Japt);
