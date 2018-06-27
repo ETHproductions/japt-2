@@ -44,6 +44,25 @@ let Japt = {
   
   methodNames: "abcdefghijklmnopqrstuvwxyzạḅḍẹḥịḳḷṃṇọṛṣṭụṿẉỵẓȧḃċḋėḟġḣıŀṁṅȯṗṙṡṫẇẋẏżàáâæèéêìíîòóôùúû",
   variableNames: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  midOperators: "+-*/%&|^≈≠≡≢<≤>≥∧∨=,?:",
+  binaryOpMap: {
+    "+": "plus",
+    "-": "minus",
+    "*": "times",
+    "/": "over",
+    "%": "mod",
+    "&": "band",
+    "|": "bor",
+    "^": "bxor",
+    "≈": "eq",
+    "≠": "neq",
+    "≡": "eqq",
+    "≢": "neqq",
+    "<": "lt",
+    "≤": "lte",
+    ">": "gt",
+    "≥": "gte"
+  },
   
   transpile: function(code_Japt, isBinary = false) {
     // Converts from the Japt codepage to UTF-8 for easier processing.
@@ -91,9 +110,13 @@ let Japt = {
       // Ends the current level, appending it to the last object in the previous one.
       function levelEnd(endchar) {
         let obj = currLevels.pop().join(", ") + endchar;
-        if (currLevels.length === 0 || currLevels.get(-1).get(-1).slice(-1) !== mirror(endchar))
+        if (currLevels.length === 0 || currLevels.get(-1).get(-1).slice(-1) !== mirror(endchar)) {
           obj = mirror(endchar) + obj;
-        objectAppend(obj);
+          currLevels.push([obj]);
+        }
+        else {
+          objectAppend(obj);
+        }
       }
       // Ends as many levels as possible with the given closing brackets.
       function levelEndAll(endchars) {
@@ -182,9 +205,7 @@ let Japt = {
       }
       
       // Close any levels left open.
-      while (currLevels.length > 1) {
-        levelEnd(mirror(currLevels.get(-2).get(-1).slice(-1)));
-      }
+      levelEndAll(")]");
       
       return currLevels[0].join(", ");
     }

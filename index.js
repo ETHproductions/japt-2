@@ -63,13 +63,20 @@ function addArgument(index) {
   numArguments += 1;
 }
 
+function setVal(element, val) {
+  $(element).val(val);
+  $(element).get()[0].adjustHeight();
+}
+
 // Runs a Japt program given code, arguments, and input. Uses a Worker if possible.
 function runJapt(code_Japt, args, input) {
+  clearTimeout(timeoutID);
   $("#output").val("");
   $("#status").css("color", "black");
   $("#status").text("Compiling...");
   
   let code_JS = Japt.transpile(code_Japt);
+  setVal("#js-code", code_JS);
 
   $("#status").text("Running...");
 
@@ -79,7 +86,7 @@ function runJapt(code_Japt, args, input) {
       console.log(data);
 
       if (data.status === "finished") {
-        $("#output").val(data.result);
+        setVal("#output", data.result);
         $("#status").text("Finished.");
       }
       else if (data.status === "error") {
@@ -107,7 +114,7 @@ function runJapt(code_Japt, args, input) {
     }
     
     try {
-      $("#output").val(program(input, ...args));
+      setVal("#output", program(input, ...args));
       $("#status").text("Finished.");
     }
     catch (e) {
@@ -138,6 +145,9 @@ function run() {
 
 
 //////////////// RUNTIME ////////////////
+
+// ID for the timeout event controlling transpilation.
+let timeoutID = -1;
 
 // Handles auto-height adjustment on textareas.
 for (let textarea of $("textarea")) {
@@ -171,6 +181,12 @@ $(document).delegate('#code', 'keydown', function(e) {
     this.selectionStart = start;
     this.selectionEnd = end;
   }
+  
+  clearTimeout(timeoutID);
+  timeoutID = setTimeout(function () {
+    let code_JS = Japt.transpile($("#code").val());
+    setVal("#js-code", code_JS);
+  }, 1000);
 });
 
 // Adds the first argument input. When permalinks arrive, will need to add a variable number of arguments and set their values.
