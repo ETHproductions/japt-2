@@ -24,10 +24,13 @@ let fs = require("fs");
     return content.toString().replace(/\r\n/g, "\n");
   }
 
-  for (let item of programArgs) {
+  for (let i = 0; i < programArgs.length; i++) {
+    let item = programArgs[i];
     if (/^-\D+$/.test(item)) {
       if (/u/.test(item))
         encoding = 'utf8';
+      if (/i/.test(item))
+        inputFile = programArgs[++i];
     }
     else if (!codeFile) {
       codeFile = item;

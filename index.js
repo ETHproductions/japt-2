@@ -125,7 +125,6 @@ function run() {
   let args = [];
   for (let elem of $("textarea.argument")) {
     if ($(elem).attr("placeholder") === "") continue;
-    console.log(elem);
     let text = elem.value;
     try {
       text = eval(text);
