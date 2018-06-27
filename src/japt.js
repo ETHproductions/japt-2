@@ -44,6 +44,25 @@ let Japt = {
   
   methodNames: "abcdefghijklmnopqrstuvwxyzạḅḍẹḥịḳḷṃṇọṛṣṭụṿẉỵẓȧḃċḋėḟġḣıŀṁṅȯṗṙṡṫẇẋẏżàáâæèéêìíîòóôùúû",
   variableNames: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  midOperators: "+-*/%&|^≈≠≡≢<≤>≥∧∨=,?:",
+  binaryOpMap: {
+    "+": "plus",
+    "-": "minus",
+    "*": "times",
+    "/": "over",
+    "%": "mod",
+    "&": "band",
+    "|": "bor",
+    "^": "bxor",
+    "≈": "eq",
+    "≠": "neq",
+    "≡": "eqq",
+    "≢": "neqq",
+    "<": "lt",
+    "≤": "lte",
+    ">": "gt",
+    "≥": "gte"
+  },
   
   transpile: function(code_Japt, isBinary = false) {
     // Converts from the Japt codepage to UTF-8 for easier processing.
