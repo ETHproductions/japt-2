@@ -15,7 +15,7 @@
     <div class="container">
       <h2>Japt 2 interface</h2>
       <textarea id="code" placeholder="Code goes here..."></textarea>
-      <textarea id="js-code" placeholder="JS code appears here..." disabled></textarea>
+      <textarea id="js-code" placeholder="JS code appears here..." readonly></textarea>
       <div id="argument-template" class="hidden">
         <textarea class="argument" placeholder=""></textarea>
         <button class="argument-button" onclick="removeArgument(+$(this).parent().attr('id').slice(9))">−</button>
@@ -32,7 +32,7 @@
     
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-    <script src="index.js"></script>
     <script src="src/japt.js"></script>
+    <script src="index.js"></script>
   </body>
 </html>
