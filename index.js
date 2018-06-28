@@ -45,7 +45,7 @@ function removeArgument(index) {
 }
 
 // Adds an argument input to the DOM and adjusts the others.
-function addArgument(index) {
+function addArgument(index, content = "") {
   for (let i = numArguments; i > index; i--) {
     let elem = $("#argument-" + i);
     $(elem.children()[0]).attr("placeholder", "Argument " + (i + 1) + " goes here...");
@@ -53,8 +53,10 @@ function addArgument(index) {
   }
   
   let newArg = $("#argument-template").clone();
+  let newTA = $(newArg.children()[0]);
   newArg.attr("id", "argument-" + (index + 1));
-  $(newArg.children()[0]).attr("placeholder", "Argument " + (index + 1) + " goes here...");
+  newTA.attr("placeholder", "Argument " + (index + 1) + " goes here...");
+  newTA.val(content);
   newArg.removeClass("hidden");
   newArg.insertAfter($("#argument-" + index));
   
@@ -143,6 +145,50 @@ function run() {
   runJapt(code, args, input);
 }
 
+function escapedBtoA(text) {
+  return btoa(
+    text.replace(/[^]/g, function(x) {
+      if (x === "\\")
+        return "\\\\";
+      if (x.charCodeAt(0) < 256)
+        return x;
+      return "\\u" + x.charCodeAt(0).toString(16).padStart(4, "0");
+    })
+  );
+}
+
+function escapedAtoB(text) {
+  return atob(text).replace(/\\u[0-9A-Fa-f]{4}/g, x => String.fromCharCode(parseInt(x.slice(2), 16))).replace(/\\\\/g, "\\");
+}
+
+function splitAddress() {
+  let code, args, input, v = new Date().toISOString().slice(0, 16);
+  let queries = location.search.match(/[&?][^&?=]+=[^&?]+/g) || [];
+  for (let item of queries) {
+    let key = item.slice(1, item.indexOf('='));
+    let val = item.slice(item.indexOf('=') + 1);
+    if (key === "code")
+      code = escapedAtoB(val);
+    else if (key === "input")
+      input = escapedAtoB(val);
+    else if (key === "args")
+      args = eval(escapedAtoB(val));
+    else if (key === "v")
+      v = val;
+  }
+  if (code && !$("#code").val())
+    $("#code").val(code);
+  if (input && !$("#input").val())
+    $("#input").val(input);
+  if (!args || args.length === 0)
+    args = [""];
+  for (let i = 0; i < args.length; i++)
+    addArgument(i, args[i]);
+  let realv = /^\d{4}-/.test(v) ? "@{" + v + "Z}" : /^\d\./.test(v) ? "v" + v : v;
+  var script = document.createElement('script');
+  script.setAttribute("src", "https://rawgit.com/ETHproductions/japt-2/" + realv + "/src/japt.js");
+  document.getElementsByTagName('head')[0].appendChild(script);
+}
 
 //////////////// RUNTIME ////////////////
 
@@ -189,5 +235,4 @@ $(document).delegate('#code', 'keydown', function(e) {
   }, 1000);
 });
 
-// Adds the first argument input. When permalinks arrive, will need to add a variable number of arguments and set their values.
-addArgument(0);
+splitAddress();
