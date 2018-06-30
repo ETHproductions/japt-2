@@ -269,19 +269,19 @@ var Japt = {
       else if (char === "«") {
         let litRegex = '/';
         while (true) {
-          // Consume the next char; if it doesn't exist, pretend we hit a right-quote.
+          // Consume the next char; if it doesn't exist, pretend we hit a right arrow-quote.
           if (code.length === 0)
             char = '»';
           else
             char = code[0], code = code.slice(1);
           
-          // Right-quote ends the string. More options in the near future.
+          // Right arrow-quote ends the string. More options in the near future.
           if (char === '»') {
             litRegex += '/g';
             levelAppend(litRegex);
             break;
           }
-          // Escape backslashes, quotes, newlines, and tabs.
+          // Escape any special regex chars, plus newline and tab.
           else if ('/\\()[]{}?*+|^$.'.includes(char)) {
             litRegex += '\\' + char;
           }
@@ -291,10 +291,45 @@ var Japt = {
           else if (char === 'ṭ') {
             litRegex += '\\t';
           }
-          // More special cases to be added in the near future.
+          // More features to be added in the near future.
           // Any (remaining) printable ASCII is added directly to the string.
           else if (/[ -~]/.test(char)) {
             litRegex += char;
+          }
+        }
+      }
+      else if (char === "»") {
+        // Consume the next char; if it doesn't exist, pretend it's a space (will be changed).
+        if (code.length === 0)
+          char = ' ';
+        else
+          char = code[0], code = code.slice(1);
+        
+        let litRegex = '/';
+        
+        while (true) {
+          if (char === "") {
+            // Special options to be added in the near future.
+          }
+          else {
+            // Escape any special regex chars, plus newline and tab.
+            if ('/\\()[]{}?*+|^$.'.includes(char)) {
+              litRegex += '\\' + char;
+            }
+            else if (char === '¶') {
+              litRegex += '\\n';
+            }
+            else if (char === 'ṭ') {
+              litRegex += '\\t';
+            }
+            // More features to be added in the near future.
+            // Any (remaining) printable ASCII is added directly to the string.
+            else if (/[ -~]/.test(char)) {
+              litRegex += char;
+            }
+            litRegex += "/g";
+            levelAppend(litRegex);
+            break;
           }
         }
       }
