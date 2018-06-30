@@ -247,6 +247,8 @@ $(document).delegate('#code', 'keydown', function(e) {
     $("#input").val(input);
   if (!args || args.length === 0)
     args = [""];
+  if (v === "dev" || v === "master")
+    v += "@{" + new Date().toISOString().slice(0, 16) + "}";
   for (let i = 0; i < args.length; i++)
     addArgument(i, args[i]);
   let realv = /^\d{4}-/.test(v) ? "@{" + v + "Z}" : /^\d\./.test(v) ? "v" + v : v;
