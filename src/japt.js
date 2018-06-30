@@ -235,6 +235,37 @@ var Japt = {
           }
         }
       }
+      else if (char === "”") {
+        // Consume the next char; if it doesn't exist, pretend it's a space (may be changed).
+        if (code.length === 0)
+          char = ' ';
+        else
+          char = code[0], code = code.slice(1);
+        
+        let litString = '"';
+        
+        // Escape backslashes, quotes, newlines, and tabs.
+        if (char === '\\') {
+          litString += '\\\\';
+        }
+        else if (char === '"') {
+          litString += '\\"';
+        }
+        else if (char === '¶') {
+          litString += '\\n';
+        }
+        else if (char === 'ṭ') {
+          litString += '\\t';
+        }
+        // More special cases to be added in the near future.
+        // Anything else is put directly in the string.
+        else  {
+          litString += char;
+        }
+        
+        litString += '"';
+        levelAppend(litString);
+      }
       else if (char === "«") {
         let litRegex = '/';
         while (true) {
