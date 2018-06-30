@@ -200,6 +200,41 @@ var Japt = {
         levelAppend("function (" + args.join(", ") + ") {");
         levelStart();
       }
+      else if (char === "“") {
+        let litString = '"';
+        while (true) {
+          // Consume the next char; if it doesn't exist, pretend we hit a right-quote.
+          if (code.length === 0)
+            char = '”';
+          else
+            char = code[0], code = code.slice(1);
+          
+          // Right-quote ends the string. More options in the near future.
+          if (char === '”') {
+            litString += '"';
+            levelAppend(litString);
+            break;
+          }
+          // Escape backslashes, quotes, newlines, and tabs.
+          else if (char === '\\') {
+            litString += '\\\\';
+          }
+          else if (char === '"') {
+            litString += '\\"';
+          }
+          else if (char === '¶') {
+            litString += '\\n';
+          }
+          else if (char === 'ṭ') {
+            litString += '\\t';
+          }
+          // More special cases to be added in the near future.
+          // Any (remaining) printable ASCII is added directly to the string.
+          else if (/[ -~]/.test(char)) {
+            litString += char;
+          }
+        }
+      }
       else if (Japt.methodNames.includes(char)) {
         // If the last char was a digit, append a space (to avoid 5.toString() syntax errors).
         if (/\d/.test(currLevels.get(-1).get(-1).slice(-1)))
