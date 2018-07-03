@@ -277,6 +277,8 @@ var Japt = {
           
           // Right arrow-quote ends the string. More options in the near future.
           if (char === '»') {
+            if (litRegex === '/')
+              litRegex += '.';
             litRegex += '/g';
             levelAppend(litRegex);
             break;
@@ -299,9 +301,9 @@ var Japt = {
         }
       }
       else if (char === "»") {
-        // Consume the next char; if it doesn't exist, pretend it's a space (will be changed).
+        // Consume the next char; if it doesn't exist, pretend it's a period (will be changed).
         if (code.length === 0)
-          char = ' ';
+          char = '.';
         else
           char = code[0], code = code.slice(1);
         
@@ -326,6 +328,9 @@ var Japt = {
             // Any (remaining) printable ASCII is added directly to the string.
             else if (/[ -~]/.test(char)) {
               litRegex += char;
+            }
+            else {
+              litRegex += '.';
             }
             litRegex += "/g";
             levelAppend(litRegex);
