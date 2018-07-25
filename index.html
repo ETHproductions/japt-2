@@ -13,26 +13,47 @@
   </head>
   <body>
     <div class="container">
-      <h2>Japt 2 interface</h2>
-      <textarea id="code" placeholder="Code goes here..."></textarea>
-      <textarea id="js-code" placeholder="JS code appears here..." readonly></textarea>
-      <div id="argument-template" class="hidden">
-        <textarea class="argument" placeholder=""></textarea>
-        <button class="argument-button" onclick="removeArgument(+$(this).parent().attr('id').slice(9))">−</button>
-        <button class="argument-button" onclick="addArgument(+$(this).parent().attr('id').slice(9))">+</button>
+      <div id="interface-container" class="col-md-7">
+        <h2>Japt 2 interface</h2>
+        <br>
+        <textarea id="code" placeholder="Code goes here..."></textarea>
+        <textarea id="js-code" placeholder="JS code appears here..." readonly></textarea>
+        <div id="argument-template" class="hidden">
+          <textarea class="argument" placeholder=""></textarea>
+          <button class="argument-button" onclick="removeArgument(+$(this).parent().attr('id').slice(9))">−</button>
+          <button class="argument-button" onclick="addArgument(+$(this).parent().attr('id').slice(9))">+</button>
+        </div>
+        <div id="argument-0">
+          <button class="argument-button" onclick="addArgument(0)">Add an argument</button>
+        </div>
+        <textarea id="input" placeholder="Input goes here..."></textarea>
+        <textarea id="output" placeholder="Output will appear here"></textarea>
+        <br>
+        <button onclick="run()">Run</button> <span id="status">Ready.</span>
       </div>
-      <div id="argument-0">
-        <button class="argument-button" onclick="addArgument(0)">Add an argument</button>
+      <div id="doc-container" class="col-md-5">
+        <h3>Documentation</h3>
+        <hr>
+        <h4>Method reference</h4>
+        <div id="table-methods-container" style="max-height: 200px; overflow-y: scroll;">
+          <table id="table-methods" class="table">  
+            <thead>
+              <tr>
+                <th scope="col">Method</th>
+                <th scope="col">Args</th>
+                <th scope="col">Description</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="alert alert-warning">Note: please do not attempt to use these methods; none have actually been implemented yet.</div>
       </div>
-      <textarea id="input" placeholder="Input goes here..."></textarea>
-      <textarea id="output" placeholder="Output will appear here"></textarea>
-      <br>
-      <button onclick="run()">Run</button> <span id="status">Ready.</span>
     </div>
     
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-    <script src="src/japt.js"></script>
+    <!--<script src="src/japt.js"></script>-->
     <script src="index.js"></script>
   </body>
 </html>
