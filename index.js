@@ -80,6 +80,13 @@ function runJapt(code_Japt, args, input) {
   $("#status").css("color", "black");
   $("#status").text("Compiling...");
   
+  if (typeof Japt === "undefined") {
+    $("#status").css("color", "red");
+    $("#status").text("Could not find Japt code.");
+    console.log(new Date())
+    return;
+  }
+  
   let code_JS;
   try {
     code_JS = Japt.transpile(code_Japt);
@@ -221,6 +228,8 @@ $(document).delegate('#code', 'keydown', function(e) {
   
   clearTimeout(timeoutID);
   timeoutID = setTimeout(function () {
+    if (typeof Japt !== "object")
+      return console.log("Could not find Japt object.");
     let code_JS = Japt.transpile($("#code").val());
     setVal("#js-code", code_JS);
   }, 1000);
@@ -255,16 +264,17 @@ $(document).delegate('#code', 'keydown', function(e) {
   
   realv = /^\d{4}-/.test(v) ? "@{" + v + "Z}" : /^\d\./.test(v) ? "v" + v : v;
   
-  $.getScript("https://rawgit.com/ETHproductions/japt-2/" + realv + "/src/japt.js")
-   .done(() => console.log("Loaded Japt 2 version " + v));
+  ajaxGlobalThenLocal("src/japt.js", (_, correct) => console.log("Loaded Japt 2", correct ? "version " + v : "latest version"), { dataType: "script" });
   
   ajaxGlobalThenLocal("methods.txt", methodsTable);
-  
 }
 
-function ajaxGlobalThenLocal(url, onDone) {
-  $.ajax("https://rawgit.com/ETHproductions/japt-2/" + realv + "/" + url)
-   .done(text => onDone(text, true)).fail(() => $.ajax(url).done(text => onDone(text, false)));
+function ajaxGlobalThenLocal(url, onDone, options) {
+  $.ajax("https://rawgit.com/ETHproductions/japt-2/" + realv + "/" + url, options)
+   .done(text => onDone(text, true))
+   .fail(() => $.ajax(url, options)
+                .done(text => onDone(text, false))
+                .fail(() => { throw new Error("Could not find " + url); }));
 }
 
 function methodsTable(text, correct) {
