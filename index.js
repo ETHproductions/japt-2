@@ -83,7 +83,6 @@ function runJapt(code_Japt, args, input) {
   if (typeof Japt === "undefined") {
     $("#status").css("color", "red");
     $("#status").text("Could not find Japt code.");
-    console.log(new Date())
     return;
   }
   
@@ -266,7 +265,7 @@ $(document).delegate('#code', 'keydown', function(e) {
   
   ajaxGlobalThenLocal("src/japt.js", (_, correct) => console.log("Loaded Japt 2", correct ? "version " + v : "latest version"), { dataType: "script" });
   
-  ajaxGlobalThenLocal("methods.txt", methodsTable);
+  ajaxGlobalThenLocal("docs/methods.txt", methodsTable);
 }
 
 function ajaxGlobalThenLocal(url, onDone, options) {
