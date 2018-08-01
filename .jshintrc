@@ -2,6 +2,7 @@
   "esversion": 6,
   "evil": true,
   "boss": true,
+  "expr": true,
   "loopfunc": true,
   "laxbreak": true,
   "jquery": true,

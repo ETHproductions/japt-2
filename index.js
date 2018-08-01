@@ -6,7 +6,7 @@ let alts
   + "aȧạa bḃḅb cċc dḋḍd eėẹe fḟf gġg hḣḥh iıịi jj kḳk lŀḷl mṁṃm nṅṇn oȯọo pṗp qq rṙṛr sṡṣs tṫ\tṭt uụu vṿv wẇẉw xẋx yẏỵy zżẓz "
   + "0⁰₀0 1¹₁1 2²₂2 3³₃3 4⁴₄4 5⁵₅5 6⁶₆6 7⁷₇7 8⁸₈8 9⁹₉9 +⁺₊+ -⁻₋- (⁽₍( )⁾₎) /⅟¼½¾/ =≈≠≡≢= <≤< >≥> &∧& |∨| ?¿? \"“”„‟\" '‼…' {‹{ }›} [«[ ]»] \n¶\n";
 
-// Rotates one or more chars in the string to their next alternates, or defaults.
+// Rotates one or more chars in the string to their next alternates, or their defaults.
 function tab(string, start = 0, end = string.length, shiftKey = false) {
   let section = string.slice(start, end);
   if (shiftKey === true) {
@@ -71,7 +71,7 @@ function setVal(element, val) {
 }
 
 // Version of japt.js to use.
-let v = new Date().toISOString().slice(0, 16);
+let v = new Date().toISOString().slice(0, 16), realv;
 
 // Runs a Japt program given code, arguments, and input. Uses a Worker if possible.
 function runJapt(code_Japt, args, input) {
@@ -79,6 +79,12 @@ function runJapt(code_Japt, args, input) {
   $("#output").val("");
   $("#status").css("color", "black");
   $("#status").text("Compiling...");
+  
+  if (typeof Japt === "undefined") {
+    $("#status").css("color", "red");
+    $("#status").text("Could not find Japt code.");
+    return;
+  }
   
   let code_JS;
   try {
@@ -221,6 +227,8 @@ $(document).delegate('#code', 'keydown', function(e) {
   
   clearTimeout(timeoutID);
   timeoutID = setTimeout(function () {
+    if (typeof Japt !== "object")
+      return console.log("Could not find Japt object.");
     let code_JS = Japt.transpile($("#code").val());
     setVal("#js-code", code_JS);
   }, 1000);
@@ -247,10 +255,52 @@ $(document).delegate('#code', 'keydown', function(e) {
     $("#input").val(input);
   if (!args || args.length === 0)
     args = [""];
+  if (v === "dev" || v === "master")
+    v += "@{" + new Date().toISOString().slice(0, 16) + "}";
+  
   for (let i = 0; i < args.length; i++)
     addArgument(i, args[i]);
-  let realv = /^\d{4}-/.test(v) ? "@{" + v + "Z}" : /^\d\./.test(v) ? "v" + v : v;
-  var script = document.createElement('script');
-  script.setAttribute("src", "https://rawgit.com/ETHproductions/japt-2/" + realv + "/src/japt.js");
-  document.getElementsByTagName('head')[0].appendChild(script);
+  
+  realv = /^\d{4}-/.test(v) ? "@{" + v + "Z}" : /^\d\./.test(v) ? "v" + v : v;
+  
+  ajaxGlobalThenLocal("src/japt.js", (_, correct) => console.log("Loaded Japt 2", correct ? "version " + v : "latest version"), { dataType: "script" });
+  
+  ajaxGlobalThenLocal("docs/methods.txt", methodsTable);
+}
+
+function ajaxGlobalThenLocal(url, onDone, options) {
+  $.ajax("https://rawgit.com/ETHproductions/japt-2/" + realv + "/" + url, options)
+   .done(text => onDone(text, true))
+   .fail(() => $.ajax(url, options)
+                .done(text => onDone(text, false))
+                .fail(() => { throw new Error("Could not find " + url); }));
+}
+
+function methodsTable(text, correct) {
+  if (!correct)
+    console.log("Failed to load past version of methods table from GitHub; current version loaded instead.");
+  
+  let table = $("#table-methods");
+  let prevMethod;
+  let lines = text.split(/\n/);
+  
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    if (!/^.\... /.test(line))
+      continue;
+    
+    let [method, args, description] = line.split(/\s+\|\s+/);
+    let row = "<tr>";
+    
+    if (prevMethod !== method)
+      row += "<th scope='row' rowspan=" + lines.slice(i).findIndex(x => x.indexOf(method + ' ') !== 0) + ">"
+        + method.slice(0, 2) + "<code>" + method.slice(2) + "</code></th>";
+    row += "<td><code>" + args + "</code></td>";
+    row += "<td>" + description.replace(/(`{1,3})((?:.(?!\1))*[^`])\1/g, "<code>$2</code>") + "</td>";
+    row += "</tr>";
+    
+    $("#table-methods").append(row);
+    
+    prevMethod = method;
+  }  
 }

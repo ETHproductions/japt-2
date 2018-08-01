@@ -11,3 +11,7 @@ textarea {
   transform: translate(0px, -4px);
   text-align: center;
 }
+
+#doc-container {
+  margin-top: 1em;
+}

@@ -1,0 +1,8 @@
+Method | Args   | Description
+------ | ------ | ------
+S.a    | r      | Returns the last index where `r` can be matched in `S`.
+S.a    | s      | Returns the last index where `s` is found in `S`.
+S.b    | r      | Returns the first index where `r` can be matched in `S`.
+S.b    | s      | Returns the first index where `s` is found in `S`.
+S.c    | n=0    | Returns the charcode at index `n` in `S`.
+S.c    | f      | Maps each charcode in `S` through `f`, converting back to a character if the result is a number.
