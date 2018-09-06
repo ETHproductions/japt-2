@@ -267,7 +267,7 @@ var Japt = {
         levelAppend(litString);
       }
       else if (char === "«") {
-        let litRegex = '/';
+        let litRegex = '', inClass = false;
         while (true) {
           // Consume the next char; if it doesn't exist, pretend we hit a right arrow-quote.
           if (code.length === 0)
@@ -275,16 +275,29 @@ var Japt = {
           else
             char = code[0], code = code.slice(1);
           
-          // Right arrow-quote ends the string. More options in the near future.
+          // Right arrow-quote ends the regex.
           if (char === '»') {
-            if (litRegex === '/')
+            if (inClass) {
+              litRegex += ']';
+            }
+            if (litRegex === '')
               litRegex += '.';
-            litRegex += '/g';
+            litRegex = '/' + litRegex + '/g';
             levelAppend(litRegex);
             break;
           }
+          else if (char === '₍') {
+            inClass = true;
+            litRegex += '[';
+          }
+          else if (char === '₎') {
+            if (!inClass)
+              litRegex = '[' + litRegex;
+            litRegex += ']';
+            inClass = false;
+          }
           // Escape any special regex chars, plus newline and tab.
-          else if ('/\\()[]{}?*+|^$.'.includes(char)) {
+          else if ('/\\()[]{}?*+|-^$.'.includes(char)) {
             litRegex += '\\' + char;
           }
           else if (char === '¶') {
@@ -292,6 +305,10 @@ var Japt = {
           }
           else if (char === 'ṭ') {
             litRegex += '\\t';
+          }
+          
+          else if (char === '₋') {
+            litRegex += '-';
           }
           // More features to be added in the near future.
           // Any (remaining) printable ASCII is added directly to the string.
