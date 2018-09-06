@@ -356,8 +356,19 @@ var Japt = {
         }
       }
       else if (Japt.methodNames.includes(char)) {
+        let currLevel = currLevels.get(-1);
+        if (currLevel.length === 0) {
+          console.log(JSON.stringify(currLevels.get(-2)))
+          if (currLevels.length > 1 && currLevels.get(-2).get(-1).slice(-1) === "(") {
+            objectAppend('"' + char + '"');
+            continue;
+          }
+          else {
+            objectAppend("U");
+          }
+        }
         // If the last char was a digit, append a space (to avoid 5.toString() syntax errors).
-        if (/\d/.test(currLevels.get(-1).get(-1).slice(-1)))
+        if (currLevel.length > 0 && /\d$/.test(currLevels.get(-1).get(-1)))
           objectAppend(" ");
 
         // Turn the letter into a method call and start a new level.
