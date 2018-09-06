@@ -70,6 +70,28 @@ function setVal(element, val) {
   $(element).get()[0].adjustHeight();
 }
 
+function tryTranspile(code_Japt) {
+  if (typeof Japt !== "object") {
+    let e = new Error("Could not find Japt object.");
+    $("#status").css("color", "red");
+    $("#status").text("Compilation error: " + e.message);
+    throw e;
+  }
+  
+  let code_JS = "error";
+  try {
+    code_JS = Japt.transpile(code_Japt);
+    setVal("#js-code", code_JS);
+  }
+  catch (e) {
+    $("#status").css("color", "red");
+    $("#status").text("Compilation error: " + e.message);
+    throw e;
+  }
+  
+  return code_JS;
+}
+
 // Version of japt.js to use.
 let v = new Date().toISOString().slice(0, 16), realv;
 
@@ -86,16 +108,7 @@ function runJapt(code_Japt, args, input) {
     return;
   }
   
-  let code_JS;
-  try {
-    code_JS = Japt.transpile(code_Japt);
-    setVal("#js-code", code_JS);
-  }
-  catch (e) {
-    $("#status").css("color", "red");
-    $("#status").text("Compilation error: " + e.message);
-    throw e;
-  }
+  let code_JS = tryTranspile(code_Japt);
 
   $("#status").text("Running...");
 
@@ -227,9 +240,7 @@ $(document).delegate('#code', 'keydown', function(e) {
   
   clearTimeout(timeoutID);
   timeoutID = setTimeout(function () {
-    if (typeof Japt !== "object")
-      return console.log("Could not find Japt object.");
-    let code_JS = Japt.transpile($("#code").val());
+    let code_JS = tryTranspile($("#code").val());
     setVal("#js-code", code_JS);
   }, 1000);
 });
