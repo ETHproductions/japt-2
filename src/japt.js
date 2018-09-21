@@ -37,6 +37,14 @@ defProps(Array.prototype, {
   }
 });
 
+var lookbehinds;
+try {
+  let lookbehindTest = RegExp("b(?<=a.)c");
+  lookbehinds = lookbehindTest.test("abc");
+} catch (e) {
+  lookbehinds = false;
+}
+
 var Japt = {
   
   codepage: "₀₁₂₃₄₅₆₇₈₉₊₋₍₎¼¾⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾½⅟ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~¶"
@@ -46,22 +54,22 @@ var Japt = {
   variableNames: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
   midOperators: "+-*/%&|^≈≠≡≢<≤>≥∧∨=,?:",
   binaryOpMap: {
-    "+": "plus",
-    "-": "minus",
-    "*": "times",
-    "/": "over",
-    "%": "mod",
-    "&": "band",
-    "|": "bor",
-    "^": "bxor",
-    "≈": "eq",
-    "≠": "neq",
-    "≡": "eqq",
-    "≢": "neqq",
-    "<": "lt",
-    "≤": "lte",
-    ">": "gt",
-    "≥": "gte"
+    "+": { name: "plus",  lit: "+"   },
+    "-": { name: "minus", lit: "-"   },
+    "*": { name: "times", lit: "*"   },
+    "/": { name: "over",  lit: "/"   },
+    "%": { name: "mod",   lit: "%"   },
+    "&": { name: "band",  lit: "&"   },
+    "|": { name: "bor",   lit: "|"   },
+    "^": { name: "bxor",  lit: "^"   },
+    "≈": { name: "eq",    lit: "=="  },
+    "≠": { name: "neq",   lit: "!="  },
+    "≡": { name: "eqq",   lit: "===" },
+    "≢": { name: "neqq",  lit: "!==" },
+    "<": { name: "lt",    lit: "<"   },
+    "≤": { name: "lte",   lit: "<="  },
+    ">": { name: "gt",    lit: ">"   },
+    "≥": { name: "gte",   lit: ">="  },
   },
   
   transpile: function(code, isBinary = false) {
@@ -282,7 +290,7 @@ var Japt = {
             }
             if (litRegex === '')
               litRegex += '.';
-            litRegex = '/' + litRegex + '/g';
+            litRegex = '/' + litRegex + '/gu';
             levelAppend(litRegex);
             break;
           }
@@ -358,7 +366,6 @@ var Japt = {
       else if (Japt.methodNames.includes(char)) {
         let currLevel = currLevels.get(-1);
         if (currLevel.length === 0) {
-          console.log(JSON.stringify(currLevels.get(-2)))
           if (currLevels.length > 1 && currLevels.get(-2).get(-1).slice(-1) === "(") {
             objectAppend('"' + char + '"');
             continue;
