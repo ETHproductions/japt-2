@@ -8,7 +8,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "webify": "rollup -f iife -i src/japt.js -o dist/japt-web.js -n Japt && uglifyjs dist/japt-web.js -o dist/japt-web.min.js -cm && uglifyjs src/webpage.js -o dist/webpage.min.js -cm"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
   },
   "homepage": "https://github.com/ETHproductions/japt-2#readme",
   "devDependencies": {
-    "webpack": "^4.19.1"
+    "rollup": "^0.67.0",
+    "uglify-es": "^3.3.9"
   }
 }
