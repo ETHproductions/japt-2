@@ -274,7 +274,7 @@ $(document).delegate('#code', 'keydown', function(e) {
   
   realv = /^\d{4}-/.test(v) ? "@{" + v + "Z}" : /^\d\./.test(v) ? "v" + v : v;
   
-  ajaxGlobalThenLocal("src/japt.js", (_, correct) => console.log("Loaded Japt 2", correct ? "version " + v : "latest version"), { dataType: "script" });
+  ajaxGlobalThenLocal("dist/japt-web.min.js", (_, correct) => console.log("Loaded Japt 2", correct ? "version " + v : "latest version"), { dataType: "script" });
   
   ajaxGlobalThenLocal("docs/methods.txt", methodsTable);
 }
