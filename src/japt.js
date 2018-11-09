@@ -1,41 +1,14 @@
+import * as utils from "./utils.js"
+
 var isnode = typeof window === "undefined";
 
-function indent(text, level = 1) {
-  return text.replace(/^/gm, "  ".repeat(level));
+var lookbehinds;
+try {
+  let lookbehindTest = RegExp("b(?<=a.)c");
+  lookbehinds = lookbehindTest.test("abc");
+} catch (e) {
+  lookbehinds = false;
 }
-
-function mirror(text, reverse = true) {
-  let mirrorMap = "()[]{}<>‹›«»\\/", output = "";
-  for (let char of text) {
-    let index = mirrorMap.indexOf(char);
-    if (index > -1)
-      char = mirrorMap[index ^ 1];
-    
-    output = reverse ? char + output : output + char;
-  }
-  return output;
-}
-
-function defProps(target, properties) {
-	for (var key in properties) properties[key] = { value: properties[key], writable: true };
-	Object.defineProperties(target, properties);
-}
-
-defProps(Array.prototype, {
-  get: function (index) {
-    if (index < 0) index += this.length;
-    return this[index];
-  },
-  set: function (index, item) {
-    if (index < 0) index += this.length;
-    return this[index] = item;
-  },
-  mapAt: function (index, f) {
-    if (index < 0) index += this.length;
-    this[index] = f(this[index]);
-    return this;
-  }
-});
 
 var Japt = {
   
@@ -46,22 +19,22 @@ var Japt = {
   variableNames: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
   midOperators: "+-*/%&|^≈≠≡≢<≤>≥∧∨=,?:",
   binaryOpMap: {
-    "+": "plus",
-    "-": "minus",
-    "*": "times",
-    "/": "over",
-    "%": "mod",
-    "&": "band",
-    "|": "bor",
-    "^": "bxor",
-    "≈": "eq",
-    "≠": "neq",
-    "≡": "eqq",
-    "≢": "neqq",
-    "<": "lt",
-    "≤": "lte",
-    ">": "gt",
-    "≥": "gte"
+    "+": { name: "plus",  lit: "+"   },
+    "-": { name: "minus", lit: "-"   },
+    "*": { name: "times", lit: "*"   },
+    "/": { name: "over",  lit: "/"   },
+    "%": { name: "mod",   lit: "%"   },
+    "&": { name: "band",  lit: "&"   },
+    "|": { name: "bor",   lit: "|"   },
+    "^": { name: "bxor",  lit: "^"   },
+    "≈": { name: "eq",    lit: "=="  },
+    "≠": { name: "neq",   lit: "!="  },
+    "≡": { name: "eqq",   lit: "===" },
+    "≢": { name: "neqq",  lit: "!==" },
+    "<": { name: "lt",    lit: "<"   },
+    "≤": { name: "lte",   lit: "<="  },
+    ">": { name: "gt",    lit: ">"   },
+    "≥": { name: "gte",   lit: ">="  },
   },
   
   transpile: function(code, isBinary = false) {
@@ -129,10 +102,10 @@ var Japt = {
       if (obj === ";") return;
 
       // If we're closing a statement that hasn't been opened, open it first.
-      if (currLevels.length === 0 || currLevels.get(-1).get(-1).slice(-1) !== mirror(endchar)) {
+      if (currLevels.length === 0 || currLevels.get(-1).get(-1).slice(-1) !== utils.mirror(endchar)) {
         if (endchar === "}") {
           // Unopened functions are given arguments X, Y, Z. May be changed in the future.
-          obj = "function(X, Y, Z) {\n" + indent(obj) + "\n}";
+          obj = "function(X, Y, Z) {\n" + utils.indent(obj) + "\n}";
 
           // Wrap in parentheses if we're not already in them.
           if (currLevels.length === 0 || currLevels.get(-1).get(-1).slice(-1) !== "(")
@@ -140,7 +113,7 @@ var Japt = {
         }
         // For parens and square brackets, just prepend their mirror.
         else if (endchar !== ";")
-          obj = mirror(endchar) + obj;
+          obj = utils.mirror(endchar) + obj;
 
         // Push it back as its own level to finish the job.
         currLevels.push([obj]);
@@ -153,7 +126,7 @@ var Japt = {
         else {
           if (endchar === "}") {
             // Finish the function, indenting the inner section.
-            obj = "\n" + indent(obj) + "\n}";
+            obj = "\n" + utils.indent(obj) + "\n}";
 
             // Wrap in parentheses if we're not already in them.
             if (currLevels.length < 2 || currLevels.get(-2).get(-1).slice(-1) !== "(") {
@@ -172,7 +145,7 @@ var Japt = {
       while (true) {
         if (currLevels.length < 2)
           return;
-        let lastchar = mirror(currLevels.get(-2).get(-1).slice(-1));
+        let lastchar = utils.mirror(currLevels.get(-2).get(-1).slice(-1));
         if (!endchars.includes(lastchar))
           return;
         levelEnd(lastchar);
@@ -282,7 +255,7 @@ var Japt = {
             }
             if (litRegex === '')
               litRegex += '.';
-            litRegex = '/' + litRegex + '/g';
+            litRegex = '/' + litRegex + '/gu';
             levelAppend(litRegex);
             break;
           }
@@ -358,7 +331,6 @@ var Japt = {
       else if (Japt.methodNames.includes(char)) {
         let currLevel = currLevels.get(-1);
         if (currLevel.length === 0) {
-          console.log(JSON.stringify(currLevels.get(-2)))
           if (currLevels.length > 1 && currLevels.get(-2).get(-1).slice(-1) === "(") {
             objectAppend('"' + char + '"');
             continue;
@@ -457,4 +429,4 @@ var Japt = {
   
 };
 
-if (isnode) module.exports = Japt;
+export default Japt;

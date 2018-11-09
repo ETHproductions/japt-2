@@ -1,0 +1,33 @@
+{
+  "name": "japt-2",
+  "version": "0.0.3",
+  "description": "The new and improved JavaScript golfing language",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "webify": "rollup -f iife -i src/japt.js -o dist/japt-web.js -n Japt && uglifyjs dist/japt-web.js -o dist/japt-web.min.js -cm && uglifyjs src/webpage.js -o dist/webpage.min.js -cm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ETHproductions/japt-2.git"
+  },
+  "keywords": [
+    "japt",
+    "esolang",
+    "golfing-language"
+  ],
+  "author": "ETHproductions",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ETHproductions/japt-2/issues"
+  },
+  "homepage": "https://github.com/ETHproductions/japt-2#readme",
+  "devDependencies": {
+    "rollup": "^0.67.0",
+    "uglify-es": "^3.3.9"
+  }
+}
