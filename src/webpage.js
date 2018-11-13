@@ -280,7 +280,7 @@ $(document).delegate('#code', 'keydown', function(e) {
 }
 
 function ajaxGlobalThenLocal(url, onDone, options) {
-  $.ajax("https://rawgit.com/ETHproductions/japt-2/" + realv + "/" + url, options)
+  $.ajax("https://cdn.jsdelivr.net/gh/ETHproductions/japt-2@" + realv + "/" + url, options)
    .done(text => onDone(text, true))
    .fail(() => $.ajax(url, options)
                 .done(text => onDone(text, false))

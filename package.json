@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "webify": "rollup -f iife -i src/japt.js -o dist/japt-web.js -n Japt && uglifyjs dist/japt-web.js -o dist/japt-web.min.js -cm && uglifyjs src/webpage.js -o dist/webpage.min.js -cm"
+    "webify": "rollup -f iife -i src/japt.js -o dist/japt-web.js -n Japt && uglifyjs dist/japt-web.js -o dist/japt-web.min.js -cm && uglifyjs src/webpage.js -o dist/webpage.min.js -cm",
+    "webtest": "rollup -f iife -i src/japt.js -o dist/japt-web.js -n Japt"
   },
   "repository": {
     "type": "git",

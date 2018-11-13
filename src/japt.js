@@ -37,6 +37,15 @@ var Japt = {
     "≥": { name: "gte",   lit: ">="  },
   },
   
+  tokenise: function(code) {
+    let tokens = [], tokenParser = /([“‟«›][^‹»”„]*[‹»”„]?|”[^]|»[^]|0|\d*\.\d+|\d+|[^])(['"]*)/gu, token;
+    while (token = tokenParser.exec(code))
+      tokens.push(token);
+
+    console.log(tokens.slice());
+    return tokens;
+  },
+  
   transpile: function(code, isBinary = false) {
     // Converts from the Japt codepage to UTF-8 for easier processing.
     if (isBinary) {
@@ -48,6 +57,7 @@ var Japt = {
       .replace(/\n/g, '¶')
       .replace(/\t/g, 'ṭ');
     
+    let tokens = Japt.tokenise(code);
     
     //// TRANSPILATION SETUP ////
     let currLevels = [[]];
@@ -153,13 +163,13 @@ var Japt = {
     }
     // Makes the transpiler behave as if the given code were next in the source.
     function useJapt(str) {
-      code = str + code;
+      tokens.unshift(...Japt.tokenise(str));
     }
 
 
     //// MAIN LOOP ////
-    while ( code.length > 0 ) {
-      let char = code[0]; code = code.slice(1);
+    while ( tokens.length > 0 ) {
+      let [[char], token, modifiers] = tokens.shift();
 
       if ("([".includes(char)) {
         // Append to the level and start a new one.
@@ -174,13 +184,13 @@ var Japt = {
         levelStart();
       }
       else if (char === "“") {
-        let litString = '"';
+        let litString = '"', restToken = token.slice(1);
         while (true) {
           // Consume the next char; if it doesn't exist, pretend we hit a right-quote.
-          if (code.length === 0)
+          if (restToken.length === 0)
             char = '”';
           else
-            char = code[0], code = code.slice(1);
+            char = restToken[0], restToken = restToken.slice(1);
           
           // Right-quote ends the string. More options in the near future.
           if (char === '”') {
@@ -209,13 +219,13 @@ var Japt = {
         }
       }
       else if (char === "”") {
+        let litString = '"', restToken = token.slice(1);
+        
         // Consume the next char; if it doesn't exist, pretend it's a space (may be changed).
-        if (code.length === 0)
+        if (restToken.length === 0)
           char = ' ';
         else
-          char = code[0], code = code.slice(1);
-        
-        let litString = '"';
+          char = restToken;
         
         // Escape backslashes, quotes, newlines, and tabs.
         if (char === '\\') {
@@ -240,13 +250,13 @@ var Japt = {
         levelAppend(litString);
       }
       else if (char === "«") {
-        let litRegex = '', inClass = false;
+        let litRegex = '', inClass = false, restToken = token.slice(1);
         while (true) {
           // Consume the next char; if it doesn't exist, pretend we hit a right arrow-quote.
-          if (code.length === 0)
+          if (restToken.length === 0)
             char = '»';
           else
-            char = code[0], code = code.slice(1);
+            char = restToken[0], restToken = restToken.slice(1);
           
           // Right arrow-quote ends the regex.
           if (char === '»') {
@@ -291,42 +301,40 @@ var Japt = {
         }
       }
       else if (char === "»") {
-        // Consume the next char; if it doesn't exist, pretend it's a period (will be changed).
-        if (code.length === 0)
-          char = '.';
-        else
-          char = code[0], code = code.slice(1);
+        let litRegex = '/', restToken = token.slice(1);
         
-        let litRegex = '/';
-        
-        while (true) {
+        for (char of restToken.slice(0, -1)) {
           if (char === "") {
             // Special options to be added in the near future.
           }
-          else {
-            // Escape any special regex chars, plus newline and tab.
-            if ('/\\()[]{}?*+|^$.'.includes(char)) {
-              litRegex += '\\' + char;
-            }
-            else if (char === '¶') {
-              litRegex += '\\n';
-            }
-            else if (char === 'ṭ') {
-              litRegex += '\\t';
-            }
-            // More features to be added in the near future.
-            // Any (remaining) printable ASCII is added directly to the string.
-            else if (/[ -~]/.test(char)) {
-              litRegex += char;
-            }
-            else {
-              litRegex += '.';
-            }
-            litRegex += "/g";
-            levelAppend(litRegex);
-            break;
-          }
         }
+        
+        // Take the last char; if it doesn't exist, pretend it's a period (will be changed).
+        if (restToken.length === 0)
+          char = '.';
+        else
+          char = restToken[0], restToken = restToken.slice(1);
+        
+        // Escape any special regex chars, plus newline and tab.
+        if ('/\\()[]{}?*+|^$.'.includes(char)) {
+          litRegex += '\\' + char;
+        }
+        else if (char === '¶') {
+          litRegex += '\\n';
+        }
+        else if (char === 'ṭ') {
+          litRegex += '\\t';
+        }
+        // More features to be added in the near future.
+        // Any (remaining) printable ASCII is added directly to the string.
+        else if (/[ -~]/.test(char)) {
+          litRegex += char;
+        }
+        else {
+          litRegex += '.';
+        }
+        litRegex += "/g";
+        levelAppend(litRegex);
       }
       else if (Japt.methodNames.includes(char)) {
         let currLevel = currLevels.get(-1);
@@ -344,7 +352,7 @@ var Japt = {
           objectAppend(" ");
 
         // Turn the letter into a method call and start a new level.
-        objectAppend("." + char + "(");
+        objectAppend("." + char + modifiers.replace(/./g, c => c === "'" ? 1 : 2) + "(");
         levelStart();
       }
       else if (char === " ") {
@@ -384,18 +392,7 @@ var Japt = {
         levelAppend(char);
       }
       else if (/\d|\./.test(char)) {
-        let litNumber = char, isDecimal = false;
-        if (char === ".") isDecimal = true;
-
-        // Leading zeroes become their own literals.
-        if (litNumber !== "0")
-          // While the next char is a digit, or it's "." and we're not in a decimal, add it to the literal.
-          while (/^\d/.test(code) || (code[0] === "." && !isDecimal)) {
-            char = code[0]; code = code.slice(1);
-            litNumber += char;
-            if (char === ".")
-              isDecimal = true;
-          }
+        let litNumber = token;
 
         // If it's just ".", turn it into ".1".
         if (litNumber === ".")
